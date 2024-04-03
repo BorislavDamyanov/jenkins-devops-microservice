@@ -24,33 +24,29 @@
                 sh 'mvn clean compile'
             }
         }
-        stage('Test') {
+         stage('Package') {
+                    steps {
+                       script {
+                            sh 'mvn clean package -DskipTests'
+                       }
+                    }
+                }
+        stage('Build Docker Image') {
             steps {
-                sh 'mvn test'
+                script {
+                    dockerImage = docker.build("boris1030/currency-exchange-devops:${env.BUILD_TAG}")
+                }
             }
         }
-        stage('Integration Test') {
+        stage('Docker Push Image') {
             steps {
-                sh 'mvn failsafe:integration-test failsafe:verify'
+                script {
+                    docker.withRegistry('https://registry.hub.docker.com', 'docker-hub-credentials') {
+                        dockerImage.push()
+                    }
+                }
             }
         }
     }
-    post{
-        always {
-            echo 'This will always run'
-        }
-        success {
-            echo 'This will run only if successful'
-        }
-        failure {
-            echo 'This will run only if failed'
-        }
-        unstable {
-            echo 'This will run only if the run was marked as unstable'
-        }
-        changed {
-            echo 'This will run only if the state of the Pipeline has changed'
-            echo 'For example, if the Pipeline was previously failing but is now successful'
-        }
-    }
+
 }
