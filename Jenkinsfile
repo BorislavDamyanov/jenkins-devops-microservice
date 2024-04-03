@@ -6,7 +6,7 @@
         PATH = "${dockerHome}/bin:${mavenHome}/bin:${env.PATH}"
     }
 	stages {
-        stage('Build') {
+        stage('Checkout') {
             steps {
                 sh 'mvn --version'
                 sh 'docker --version'
@@ -19,14 +19,19 @@
                 echo "JOB_BASE_NAME: ${env.JOB_BASE_NAME}"
             }
         }
-        stage('Test') {
+        stage('Build') {
             steps {
-                echo 'Testing..'
+                sh 'mvn clean package'
             }
         }
-        stage('Deploy') {
+        stage('Test') {
             steps {
-                echo 'Deploying....'
+                sh 'mvn test'
+            }
+        }
+        stage('Integration Test') {
+            steps {
+                sh 'mvn failsafe:integration-test failsafe:verify'
             }
         }
     }
